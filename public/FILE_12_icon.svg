@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4c6ef5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#grad)"/>
+  <!-- Car body -->
+  <rect x="80" y="260" width="352" height="140" rx="24" fill="white" opacity="0.95"/>
+  <!-- Car roof -->
+  <polygon points="140,260 185,165 327,165 372,260" fill="white" opacity="0.95"/>
+  <!-- Wheels -->
+  <circle cx="160" cy="400" r="48" fill="#0a0e1a" opacity="0.9"/>
+  <circle cx="160" cy="400" r="24" fill="#4c6ef5"/>
+  <circle cx="352" cy="400" r="48" fill="#0a0e1a" opacity="0.9"/>
+  <circle cx="352" cy="400" r="24" fill="#4c6ef5"/>
+  <!-- Windows -->
+  <rect x="195" y="176" width="52" height="60" rx="8" fill="#0a0e1a" opacity="0.35"/>
+  <rect x="265" y="176" width="52" height="60" rx="8" fill="#0a0e1a" opacity="0.35"/>
+  <!-- Headlights -->
+  <rect x="82" y="310" width="40" height="20" rx="6" fill="#fbbf24" opacity="0.9"/>
+  <rect x="390" y="310" width="40" height="20" rx="6" fill="#fbbf24" opacity="0.9"/>
+  <!-- Location Pin -->
+  <circle cx="390" cy="95" r="52" fill="#ef4444"/>
+  <circle cx="390" cy="95" r="22" fill="white"/>
+  <polygon points="390,147 368,118 412,118" fill="#ef4444"/>
+</svg>
