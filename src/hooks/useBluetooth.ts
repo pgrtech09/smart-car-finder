@@ -9,6 +9,9 @@ interface UseBluetoothOptions {
   onConnect?: () => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type BTDevice = any;
+
 export function useBluetooth({
   deviceName,
   onDisconnect,
@@ -16,7 +19,7 @@ export function useBluetooth({
 }: UseBluetoothOptions = {}) {
   const [status, setStatus] = useState<BluetoothStatus>("idle");
   const [isSupported, setIsSupported] = useState(false);
-  const [connectedDevice, setConnectedDevice] = useState<BluetoothDevice | null>(null);
+  const [connectedDevice, setConnectedDevice] = useState<BTDevice>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -39,7 +42,9 @@ export function useBluetooth({
     setError(null);
 
     try {
-      const device = await navigator.bluetooth.requestDevice({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const nav = navigator as any;
+      const device = await nav.bluetooth.requestDevice({
         acceptAllDevices: !deviceName,
         filters: deviceName ? [{ name: deviceName }] : undefined,
         optionalServices: ["generic_access"],
@@ -71,7 +76,6 @@ export function useBluetooth({
     setConnectedDevice(null);
   }, [connectedDevice]);
 
-  // Clean up listener on unmount
   useEffect(() => {
     return () => {
       if (connectedDevice) {
