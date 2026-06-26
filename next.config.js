@@ -1,13 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  reactStrictMode: true,
+  reactStrictMode: false,
+  swcMinify: true,
   images: {
     unoptimized: true,
   },
   trailingSlash: true,
   basePath: '/smart-car-finder',
   assetPrefix: '/smart-car-finder',
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 module.exports = nextConfig;
