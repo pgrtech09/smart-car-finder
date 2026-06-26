@@ -11,40 +11,28 @@ import { Button } from "@/components/ui/Button";
 import { calculateDistance, formatDistance, formatDateTime } from "@/lib/utils";
 import type { ParkingLocation } from "@/types";
 
-function MapDisplay({ carLocation, userLocation }: {
-  carLocation?: { latitude: number; longitude: number };
+function SimpleMap({ carLocation, userLocation }: {
+  carLocation: { latitude: number; longitude: number };
   userLocation?: { latitude: number; longitude: number } | null;
 }) {
-  const [loaded, setLoaded] = useState(false);
-  const [Comp, setComp] = useState<React.ComponentType<{
-    carLocation?: { latitude: number; longitude: number };
-    userLocation?: { latitude: number; longitude: number } | null;
-    height?: string;
-    zoom?: number;
-  }> | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    import("../../../components/map/ParkingMap").then((m) => {
-      if (!cancelled) {
-        setComp(() => m.ParkingMap);
-        setLoaded(true);
-      }
-    }).catch(() => setLoaded(false));
-    return () => { cancelled = true; };
-  }, []);
-
-  if (!loaded || !Comp) {
-    return (
-      <div className="h-80 rounded-xl bg-surface-800 border border-white/5 flex items-center justify-center">
-        <p className="text-slate-500 text-sm animate-pulse">Loading map...</p>
-      </div>
-    );
-  }
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${
+    carLocation.longitude - 0.005
+  }%2C${carLocation.latitude - 0.005}%2C${
+    carLocation.longitude + 0.005
+  }%2C${carLocation.latitude + 0.005}&layer=mapnik&marker=${
+    carLocation.latitude
+  }%2C${carLocation.longitude}`;
 
   return (
-    <div className="rounded-xl overflow-hidden border border-white/5 shadow-card">
-      <Comp carLocation={carLocation} userLocation={userLocation} height="320px" zoom={16} />
+    <div className="rounded-xl overflow-hidden border border-white/10 shadow-card">
+      <iframe
+        src={mapUrl}
+        width="100%"
+        height="320"
+        style={{ border: 0 }}
+        loading="lazy"
+        title="Parking Map"
+      />
     </div>
   );
 }
@@ -127,7 +115,7 @@ function MapContent() {
       {loading ? (
         <div className="h-80 rounded-xl shimmer" />
       ) : carLocation ? (
-        <MapDisplay carLocation={carLocation} userLocation={userCoords} />
+        <SimpleMap carLocation={carLocation} userLocation={userCoords} />
       ) : (
         <div className="glass rounded-2xl p-8 text-center border border-white/5">
           <Car size={32} className="text-slate-500 mx-auto mb-3" />
