@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -35,9 +36,9 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_APP_URL: https://${{ github.repository_owner }}.github.io/smart-car-finder
+          NEXT_PUBLIC_APP_URL: https://pgrtech09.github.io/smart-car-finder
 
-      - name: Add .nojekyll
+      - name: Add nojekyll
         run: touch ./out/.nojekyll
 
       - name: Upload artifact
