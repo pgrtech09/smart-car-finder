@@ -11,12 +11,12 @@ import { Button } from "@/components/ui/Button";
 import { calculateDistance, formatDistance, formatDateTime } from "@/lib/utils";
 import type { ParkingLocation } from "@/types";
 
-function MapComponent({ carLocation, userLocation }: { 
+function MapDisplay({ carLocation, userLocation }: {
   carLocation?: { latitude: number; longitude: number };
   userLocation?: { latitude: number; longitude: number } | null;
 }) {
-  const [MapReady, setMapReady] = useState(false);
-  const [ParkingMapComp, setParkingMapComp] = useState<React.ComponentType<{
+  const [loaded, setLoaded] = useState(false);
+  const [Comp, setComp] = useState<React.ComponentType<{
     carLocation?: { latitude: number; longitude: number };
     userLocation?: { latitude: number; longitude: number } | null;
     height?: string;
@@ -24,24 +24,27 @@ function MapComponent({ carLocation, userLocation }: {
   }> | null>(null);
 
   useEffect(() => {
-    import("@/components/map/ParkingMap").then((mod) => {
-      setParkingMapComp(() => mod.ParkingMap);
-      setMapReady(true);
-    });
+    let cancelled = false;
+    import("../../../components/map/ParkingMap").then((m) => {
+      if (!cancelled) {
+        setComp(() => m.ParkingMap);
+        setLoaded(true);
+      }
+    }).catch(() => setLoaded(false));
+    return () => { cancelled = true; };
   }, []);
 
-  if (!MapReady || !ParkingMapComp) {
-    return <div className="h-80 rounded-xl shimmer" />;
+  if (!loaded || !Comp) {
+    return (
+      <div className="h-80 rounded-xl bg-surface-800 border border-white/5 flex items-center justify-center">
+        <p className="text-slate-500 text-sm animate-pulse">Loading map...</p>
+      </div>
+    );
   }
 
   return (
     <div className="rounded-xl overflow-hidden border border-white/5 shadow-card">
-      <ParkingMapComp
-        carLocation={carLocation}
-        userLocation={userLocation}
-        height="320px"
-        zoom={16}
-      />
+      <Comp carLocation={carLocation} userLocation={userLocation} height="320px" zoom={16} />
     </div>
   );
 }
@@ -70,24 +73,29 @@ function MapContent() {
     load();
   }, [user, fetchLatest]);
 
-  const carLocation = paramLat && paramLng
-    ? { latitude: parseFloat(paramLat), longitude: parseFloat(paramLng) }
-    : parking
-    ? { latitude: parking.latitude, longitude: parking.longitude }
-    : undefined;
+  const carLocation =
+    paramLat && paramLng
+      ? { latitude: parseFloat(paramLat), longitude: parseFloat(paramLng) }
+      : parking
+      ? { latitude: parking.latitude, longitude: parking.longitude }
+      : undefined;
 
   const distance =
     carLocation && userCoords
       ? calculateDistance(
-          userCoords.latitude, userCoords.longitude,
-          carLocation.latitude, carLocation.longitude
+          userCoords.latitude,
+          userCoords.longitude,
+          carLocation.latitude,
+          carLocation.longitude
         )
       : null;
 
   const openNativeNav = () => {
     if (!carLocation) return;
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${carLocation.latitude},${carLocation.longitude}`;
-    window.open(url, "_blank");
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${carLocation.latitude},${carLocation.longitude}`,
+      "_blank"
+    );
   };
 
   return (
@@ -119,12 +127,12 @@ function MapContent() {
       {loading ? (
         <div className="h-80 rounded-xl shimmer" />
       ) : carLocation ? (
-        <MapComponent carLocation={carLocation} userLocation={userCoords} />
+        <MapDisplay carLocation={carLocation} userLocation={userCoords} />
       ) : (
         <div className="glass rounded-2xl p-8 text-center border border-white/5">
           <Car size={32} className="text-slate-500 mx-auto mb-3" />
           <p className="text-slate-400 text-sm">No parking location saved yet.</p>
-          <p className="text-slate-500 text-xs mt-1">Park your car to see it on the map.</p>
+          <p className="text-slate-500 text-xs mt-1">Park your car first.</p>
         </div>
       )}
 
@@ -135,7 +143,8 @@ function MapContent() {
             <p className="text-sm font-semibold text-white">Last Parked Location</p>
           </div>
           <p className="text-sm text-slate-300 pl-5">
-            {parking.address || `${parking.latitude.toFixed(5)}, ${parking.longitude.toFixed(5)}`}
+            {parking.address ||
+              `${parking.latitude.toFixed(5)}, ${parking.longitude.toFixed(5)}`}
           </p>
           <p className="text-xs text-slate-500 pl-5">{formatDateTime(parking.parked_at)}</p>
         </div>
@@ -143,7 +152,7 @@ function MapContent() {
 
       <div className="flex gap-4 px-1">
         <div className="flex items-center gap-2 text-xs text-slate-400">
-          <div className="w-3 h-3 rounded-full bg-gradient-brand shadow-glow" />
+          <div className="w-3 h-3 rounded-full bg-brand-500" />
           Your Car
         </div>
         <div className="flex items-center gap-2 text-xs text-slate-400">
@@ -187,11 +196,15 @@ function MapContent() {
 export default function MapPage() {
   return (
     <AppShell>
-      <Suspense fallback={
-        <div className="p-4 space-y-4">
-          {[1,2,3].map(i=><div key={i} className="h-24 shimmer rounded-2xl"/>)}
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className="p-4 space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-24 shimmer rounded-2xl" />
+            ))}
+          </div>
+        }
+      >
         <MapContent />
       </Suspense>
     </AppShell>
