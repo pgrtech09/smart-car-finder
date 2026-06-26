@@ -2,7 +2,6 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { Navigation, MapPin, RefreshCw, LocateFixed, Car } from "lucide-react";
 import AppShell from "@/components/layout/AppShell";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,10 +11,40 @@ import { Button } from "@/components/ui/Button";
 import { calculateDistance, formatDistance, formatDateTime } from "@/lib/utils";
 import type { ParkingLocation } from "@/types";
 
-const ParkingMap = dynamic(
-  () => import("@/components/map/ParkingMap").then((m) => m.ParkingMap),
-  { ssr: false, loading: () => <div className="h-64 rounded-xl shimmer" /> }
-);
+function MapComponent({ carLocation, userLocation }: { 
+  carLocation?: { latitude: number; longitude: number };
+  userLocation?: { latitude: number; longitude: number } | null;
+}) {
+  const [MapReady, setMapReady] = useState(false);
+  const [ParkingMapComp, setParkingMapComp] = useState<React.ComponentType<{
+    carLocation?: { latitude: number; longitude: number };
+    userLocation?: { latitude: number; longitude: number } | null;
+    height?: string;
+    zoom?: number;
+  }> | null>(null);
+
+  useEffect(() => {
+    import("@/components/map/ParkingMap").then((mod) => {
+      setParkingMapComp(() => mod.ParkingMap);
+      setMapReady(true);
+    });
+  }, []);
+
+  if (!MapReady || !ParkingMapComp) {
+    return <div className="h-80 rounded-xl shimmer" />;
+  }
+
+  return (
+    <div className="rounded-xl overflow-hidden border border-white/5 shadow-card">
+      <ParkingMapComp
+        carLocation={carLocation}
+        userLocation={userLocation}
+        height="320px"
+        zoom={16}
+      />
+    </div>
+  );
+}
 
 function MapContent() {
   const searchParams = useSearchParams();
@@ -41,7 +70,6 @@ function MapContent() {
     load();
   }, [user, fetchLatest]);
 
-  // Override with URL params if provided
   const carLocation = paramLat && paramLng
     ? { latitude: parseFloat(paramLat), longitude: parseFloat(paramLng) }
     : parking
@@ -74,7 +102,6 @@ function MapContent() {
         </button>
       </div>
 
-      {/* Distance Banner */}
       {distance !== null && (
         <div className="glass rounded-2xl p-4 border border-brand-500/20 shadow-glow">
           <div className="flex items-center justify-between">
@@ -89,18 +116,10 @@ function MapContent() {
         </div>
       )}
 
-      {/* Map */}
       {loading ? (
-        <div className="h-64 rounded-xl shimmer" />
+        <div className="h-80 rounded-xl shimmer" />
       ) : carLocation ? (
-        <div className="rounded-xl overflow-hidden border border-white/5 shadow-card">
-          <ParkingMap
-            carLocation={carLocation}
-            userLocation={userCoords}
-            height="320px"
-            zoom={16}
-          />
-        </div>
+        <MapComponent carLocation={carLocation} userLocation={userCoords} />
       ) : (
         <div className="glass rounded-2xl p-8 text-center border border-white/5">
           <Car size={32} className="text-slate-500 mx-auto mb-3" />
@@ -109,7 +128,6 @@ function MapContent() {
         </div>
       )}
 
-      {/* Car Info */}
       {parking && (
         <div className="glass rounded-2xl p-4 space-y-2 border border-white/5">
           <div className="flex items-center gap-2">
@@ -123,7 +141,6 @@ function MapContent() {
         </div>
       )}
 
-      {/* Legend */}
       <div className="flex gap-4 px-1">
         <div className="flex items-center gap-2 text-xs text-slate-400">
           <div className="w-3 h-3 rounded-full bg-gradient-brand shadow-glow" />
@@ -133,13 +150,8 @@ function MapContent() {
           <div className="w-3 h-3 rounded-full bg-green-400" />
           You
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <div className="w-3 h-1 border-t-2 border-dashed border-brand-400/60 w-6" />
-          Route
-        </div>
       </div>
 
-      {/* Actions */}
       <div className="grid grid-cols-2 gap-2">
         <Button
           variant="primary"
@@ -175,7 +187,11 @@ function MapContent() {
 export default function MapPage() {
   return (
     <AppShell>
-      <Suspense fallback={<div className="p-4 space-y-4">{[1,2,3].map(i=><div key={i} className="h-24 shimmer rounded-2xl"/>)}</div>}>
+      <Suspense fallback={
+        <div className="p-4 space-y-4">
+          {[1,2,3].map(i=><div key={i} className="h-24 shimmer rounded-2xl"/>)}
+        </div>
+      }>
         <MapContent />
       </Suspense>
     </AppShell>
